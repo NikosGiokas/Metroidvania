@@ -68,7 +68,7 @@ def apply_horizontal_movement(player: Player):
     player.x -= player.leftMovement
     player.x += player.rightMovement
 
-# Game loop
+# Game loop 
 
 while running:
     for event in pygame.event.get():
