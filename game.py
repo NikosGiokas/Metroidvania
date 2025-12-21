@@ -19,8 +19,8 @@ class Player:
     rightMovement = 0
     standing = False
     jumping = False
-    height = 100
-    width = 100
+    height = 80
+    width = 80
 
 class Block:
     x = 0
@@ -34,10 +34,10 @@ class Block:
 
 
 DV = 0.5
-GRAVITY = 9.81 / 500
+GRAVITY = 9.81 / 450
 running = True
 blockArray = []
-seed = "00001019160000"
+seed = "000019150902120902120902120712021102110411051109021204110612191316071100"
 
 
 
@@ -108,19 +108,19 @@ def create_blocks_from_seed(seed: str):
             i += 1
             for j in range(int(seed[i])):
                 blockArray.append(Block(newX,newY))
-                if newX > screenWidth - 50:
-                    newX = 105
-                    newY += 105
+                if newX > screenWidth - 200:
+                    newX = 50
+                    newY += 100
                 else:
-                    newX += 105
+                    newX += 100
         elif seed[i] == "0":
             i += 1
             for j in range(int(seed[i])):
-                if newX > screenWidth - 50:
-                    newX = 105
-                    newY += 105
+                if newX > screenWidth - 200:
+                    newX = 50
+                    newY += 100
                 else: 
-                    newX += 105
+                    newX += 100
         i += 1
     return blockArray
            
