@@ -22,9 +22,24 @@ class Player:
     height = 100
     width = 100
 
+class Block:
+    x = 0
+    y = 0
+    size = 100
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+
 DV = 0.5
 GRAVITY = 9.81 / 500
 running = True
+blockArray = []
+seed = "00001019160000"
+
+
 
 def give_movement(player: Player, event: pygame.Event):
     if event.type == KEYDOWN:  
@@ -72,8 +87,51 @@ def apply_horizontal_movement(player: Player):
     player.x -= player.leftMovement
     player.x += player.rightMovement
 
-# Game loop 
+# Returns the room number
+def room_number(seed):
+    return seed[:3]
 
+# Returns the map relevant 
+def room_map(seed):
+    return seed[4:]
+
+def create_blocks_from_seed(seed: str):
+    blockArray: list = []
+    genNum = 0
+    newX = 50
+    newY = 50
+#    if seed[2] == "0" and seed[3] == "0" and seed[4] != "0":
+#        print("went")
+#        genNum = 4
+    for i in range(len(seed)-1):
+        if seed[i] == "1": 
+            i += 1
+            for j in range(int(seed[i])):
+                blockArray.append(Block(newX,newY))
+                if newX > screenWidth - 50:
+                    newX = 105
+                    newY += 105
+                else:
+                    newX += 105
+        elif seed[i] == "0":
+            i += 1
+            for j in range(int(seed[i])):
+                if newX > screenWidth - 50:
+                    newX = 105
+                    newY += 105
+                else: 
+                    newX += 105
+        i += 1
+    return blockArray
+           
+def draw_blocks(blockArray: list):
+    for i in range(len(blockArray)):
+        pygame.draw.rect(screen,(0,255,0),[blockArray[i].x,blockArray[i].y,blockArray[i].size,blockArray[i].size],0)
+
+
+
+# Game loop 
+blocks = create_blocks_from_seed(room_map(seed))
 player = Player()
 while running:
     for event in pygame.event.get():
@@ -85,6 +143,7 @@ while running:
     apply_horizontal_movement(player)
     
     screen.fill((30,200,50))
+    draw_blocks(blocks)
     pygame.draw.rect(screen,(255,0,0),[player.x,player.y,player.width,player.height],0)
     pygame.display.update()
 
