@@ -26,8 +26,8 @@ class Point:
     x = 0
     y = 0
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = round(x)
+        self.y = round(y)
 
 class Block:
     x = 0
@@ -75,23 +75,23 @@ def limit_out_of_bounds(player: Player):
     elif player.y > screenHeight-player.height:
         player.y = screenHeight-player.height
 
-def apply_vertical_movement(player: Player, blocks: list[Block]):
-    height_offset = 5
+def apply_gravity(player: Player):
     jump_velocity = -3
-    
-    is_on_bottom = player.y >= screenHeight-player.height-height_offset and player.y <= screenHeight-player.height+height_offset
-        
-    if is_on_bottom or is_colliding_top(blocks, player):
-        player.standing = True
-    else:
-        player.standing = False
-
     if player.standing == False:
         player.velocity += GRAVITY
     elif player.standing == True:
         player.velocity = 0
     if player.jumping == True and player.standing == True:
         player.velocity = jump_velocity
+
+def apply_vertical_movement(player: Player, blocks: list[Block]):
+    height_offset = 5    
+    is_on_bottom = player.y >= screenHeight-player.height and player.y <= screenHeight-player.height
+        
+    if is_on_bottom or is_on_top(blocks, player):
+        player.standing = True
+    else:
+        player.standing = False
     player.y += player.velocity
 
 def apply_horizontal_movement(player: Player):
@@ -131,10 +131,19 @@ def create_blocks_from_seed(seed: str):
                     newX += 100
         i += 1
     return blockArray
-           
+               
 def draw_blocks(blocks: list[Block]):
     for i in range(len(blocks)):
         pygame.draw.rect(screen,(0,255,0),[blocks[i].x,blocks[i].y,blocks[i].size,blocks[i].size],0)
+
+def is_on_top(blocks: list[Block], player: Player):
+    top_offset = 1
+    for block in blocks:
+        left_bottom_player_part = Point(player.x, player.y + player.height + top_offset)
+        right_bottom_player_part = Point(player.x + player.width, player.y + player.height + top_offset)
+        if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
+            return True
+    return False
 
 def is_colliding_top(blocks: list[Block], player: Player):
     for block in blocks:
@@ -188,6 +197,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         give_movement(player, event)
+    apply_gravity(player)
     limit_out_of_bounds(player)
     do_block_collisions(blocks, player)
     apply_vertical_movement(player, blocks)
