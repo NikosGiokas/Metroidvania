@@ -11,8 +11,8 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption("Metroidvania")
 
 class Player:
-    x = 0
-    y = 0
+    x = 250
+    y = 250
     health = 5
     velocity = 0
     leftMovement = 0
@@ -22,6 +22,13 @@ class Player:
     height = 80
     width = 80
 
+class Point:
+    x = 0
+    y = 0
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
 class Block:
     x = 0
     y = 0
@@ -30,14 +37,15 @@ class Block:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-
-
+    
+    def contains(self, point: Point):
+        return point.x >= self.x and point.x <= self.x + self.size and point.y >= self.y and  point.y <= self.y + self.size
 
 DV = 0.5
 GRAVITY = 9.81 / 450
 running = True
 blockArray = []
-seed = "000019150902120902120902120712021102110411051109021204110612191316071100"
+seed = "000019150902120902120902120712021102110411051109021204110612190316071100"
 
 
 
@@ -67,10 +75,13 @@ def limit_out_of_bounds(player: Player):
     elif player.y > screenHeight-player.height:
         player.y = screenHeight-player.height
 
-def apply_vertical_movement(player: Player):
+def apply_vertical_movement(player: Player, blocks: list[Block]):
     height_offset = 5
     jump_velocity = -3
-    if player.y >= screenHeight-player.height-height_offset and player.y <= screenHeight-player.height+height_offset:
+    
+    is_on_bottom = player.y >= screenHeight-player.height-height_offset and player.y <= screenHeight-player.height+height_offset
+        
+    if is_on_bottom or is_colliding_top(blocks, player):
         player.standing = True
     else:
         player.standing = False
@@ -88,11 +99,11 @@ def apply_horizontal_movement(player: Player):
     player.x += player.rightMovement
 
 # Returns the room number
-def room_number(seed):
+def room_number(seed: str):
     return seed[:3]
 
 # Returns the map relevant 
-def room_map(seed):
+def room_map(seed: str):
     return seed[4:]
 
 def create_blocks_from_seed(seed: str):
@@ -100,14 +111,11 @@ def create_blocks_from_seed(seed: str):
     genNum = 0
     newX = 50
     newY = 50
-#    if seed[2] == "0" and seed[3] == "0" and seed[4] != "0":
-#        print("went")
-#        genNum = 4
     for i in range(len(seed)-1):
         if seed[i] == "1": 
             i += 1
             for j in range(int(seed[i])):
-                blockArray.append(Block(newX,newY))
+                blockArray.append(Block(newX, newY))
                 if newX > screenWidth - 200:
                     newX = 50
                     newY += 100
@@ -124,22 +132,65 @@ def create_blocks_from_seed(seed: str):
         i += 1
     return blockArray
            
-def draw_blocks(blockArray: list):
-    for i in range(len(blockArray)):
-        pygame.draw.rect(screen,(0,255,0),[blockArray[i].x,blockArray[i].y,blockArray[i].size,blockArray[i].size],0)
+def draw_blocks(blocks: list[Block]):
+    for i in range(len(blocks)):
+        pygame.draw.rect(screen,(0,255,0),[blocks[i].x,blocks[i].y,blocks[i].size,blocks[i].size],0)
 
+def is_colliding_top(blocks: list[Block], player: Player):
+    for block in blocks:
+        left_bottom_player_part = Point(player.x, player.y + player.height + player.velocity)
+        right_bottom_player_part = Point(player.x + player.width, player.y + player.height + player.velocity)
+        if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
+            return True
+    return False
 
+def is_colliding_bottom(blocks: list[Block], player: Player):
+    for block in blocks:
+        left_top_player_part = Point(player.x, player.y + player.velocity)
+        right_top_player_part = Point(player.x + player.width, player.y + player.velocity)
+        if block.contains(left_top_player_part) or block.contains(right_top_player_part):
+            return True
+    return False
+
+def is_colliding_left(blocks: list[Block], player: Player):
+    for block in blocks:
+        right_top_player_part = Point(player.x + player.width + player.rightMovement, player.y)
+        right_bottom_player_part = Point(player.x + player.width + player.rightMovement, player.y + player.height)
+        if block.contains(right_top_player_part) or block.contains(right_bottom_player_part):
+            return True
+    return False
+
+def is_colliding_right(blocks: list[Block], player: Player):
+    for block in blocks:
+        left_top_player_part = Point(player.x - player.leftMovement, player.y)
+        left_bottom_player_part = Point(player.x - player.leftMovement, player.y + player.height)
+        if block.contains(left_top_player_part) or block.contains(left_bottom_player_part):
+            return True
+    return False
+
+def do_block_collisions(blockArray: list[Block], player: Player):
+    if is_colliding_top(blockArray, player):
+        player.velocity = 0
+        player.standing = True
+    if is_colliding_left(blockArray, player):
+        player.rightMovement = 0
+    if is_colliding_right(blockArray, player):
+        player.leftMovement = 0
+    if is_colliding_bottom(blockArray, player):
+        player.velocity = 0
 
 # Game loop 
 blocks = create_blocks_from_seed(room_map(seed))
 player = Player()
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         give_movement(player, event)
     limit_out_of_bounds(player)
-    apply_vertical_movement(player)
+    do_block_collisions(blocks, player)
+    apply_vertical_movement(player, blocks)
     apply_horizontal_movement(player)
     
     screen.fill((30,200,50))
