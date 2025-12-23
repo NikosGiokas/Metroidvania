@@ -55,7 +55,7 @@ def give_movement(player: Player, event: pygame.Event):
             player.leftMovement = DV 
         if event.key == K_d:  
             player.rightMovement = DV  
-        if event.key == K_SPACE and player.standing == True:
+        if event.key == K_SPACE :
             player.jumping = True
     if event.type == KEYUP:
         if event.key == K_a:
@@ -182,9 +182,9 @@ def do_block_collisions(blockArray: list[Block], player: Player):
         player.velocity = 0
         player.standing = True
     if is_colliding_left(blockArray, player):
-        player.rightMovement = 0
+        player.x -= player.rightMovement
     if is_colliding_right(blockArray, player):
-        player.leftMovement = 0
+        player.x += player.leftMovement
     if is_colliding_bottom(blockArray, player):
         player.velocity = 0
 
