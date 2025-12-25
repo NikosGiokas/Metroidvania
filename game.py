@@ -41,13 +41,23 @@ class Block:
     def contains(self, point: Point):
         return point.x >= self.x and point.x <= self.x + self.size and point.y >= self.y and  point.y <= self.y + self.size
 
+class Enemy:
+    position: Point
+    health = 1
+    speed = 0
+    def __init__(self, position: Point, health: int, speed: float):
+        self.position = position
+        self.health = health
+        self.speed = speed
+    
 DV = 0.5
 GRAVITY = 9.81 / 450
 running = True
 blockArray = []
 seed = "000019150902120902120902120712021102110411051109021204110612190316071100"
 
-
+def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
+    return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
 
 def give_movement(player: Player, event: pygame.Event):
     if event.type == KEYDOWN:  
@@ -187,6 +197,19 @@ def do_block_collisions(blockArray: list[Block], player: Player):
         player.x += player.leftMovement
     if is_colliding_bottom(blockArray, player):
         player.velocity = 0
+        
+def draw_player(player: Player):
+    pygame.draw.rect(screen,(255,0,0),[player.x,player.y,player.width,player.height],0)
+        
+def draw_borders():
+    pygame.draw.rect(screen,(0,0,0),[0,0,screenWidth,50],0)
+    pygame.draw.rect(screen,(0,0,0),[0,0,50,screenHeight],0)
+    pygame.draw.rect(screen,(0,0,0),[0,screenHeight - 50,screenWidth,50],0)
+    pygame.draw.rect(screen,(0,0,0),[screenWidth - 50,0,50,screenHeight],0)
+    
+def draw_health(player: Player):
+    for i in range(player.health):
+        pygame.draw.rect(screen,(255,0,0),[44*i+50,5,40,40],0)
 
 # Game loop 
 blocks = create_blocks_from_seed(room_map(seed))
@@ -205,7 +228,9 @@ while running:
     
     screen.fill((30,200,50))
     draw_blocks(blocks)
-    pygame.draw.rect(screen,(255,0,0),[player.x,player.y,player.width,player.height],0)
+    draw_player(player)
+    draw_borders()
+    draw_health(player)
     pygame.display.update()
 
 # Quit Pygame
