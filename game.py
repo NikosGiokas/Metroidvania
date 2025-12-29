@@ -52,8 +52,7 @@ class Enemy:
     health = 1
     speed = 0
     velocity = 0
-    width = 100
-    height = 100
+    size = Size(100,100)
     def __init__(self, position: Point):
         self.position = position
     
@@ -61,10 +60,12 @@ class Testenemy(Enemy):
     
     speed = 0.2
     health = 11
-    width = 50
-    height = 20
-    # def do_vertical_movement(self, blocks: Block):
-    #     if is_colliding_top(blocks, self.position):
+    size = Size(50,20)
+    def do_vertical_movement(self, blocks: Block):
+        if not is_colliding_top(blocks, self.position):
+            self.velocity += GRAVITY
+        else:
+            self.velocity = 0
         
 
 
