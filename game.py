@@ -293,12 +293,12 @@ blocks = create_blocks_from_seed(room_map(seed))
 enemies = create_enemies_from_seed(room_map(seed))
 player = Player()
 
-# with open('level_01.json', 'r') as file:
-#     data = json.load(file)
+with open('level_01.json', 'r') as file:
+    data = json.load(file)
 
-# blocks.clear()
-# for block_data in data["blocks"]:
-#     blocks.append(Block(block_data["x"], block_data["y"]))
+blocks.clear()
+for block_data in data["blocks"]:
+    blocks.append(Block(block_data["x"], block_data["y"]))
 
 while running:
     for event in pygame.event.get():
