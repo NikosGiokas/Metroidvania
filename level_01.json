@@ -50,6 +50,6 @@
         {"x": 1050, "y": 850}
     ],
     "enemies": [
-        {"type": "testEnemy", "x": 0, "y": 0}
+        {"type": "Testenemy", "x": 470, "y": 600}
     ]
 }

@@ -31,7 +31,7 @@ class Point:
         self.y = round(y)
 
 class Player:
-    location = Point(250,250)
+    location = Point(450,250)
     health = 5
     velocity = 0
     leftMovement = 0
@@ -55,7 +55,7 @@ class Block:
 class Enemy:
     position = Point(0,0)
     health = 1
-    speed = 0
+    speed = 0.2
     rightMovement = 0.2
     leftMovement = -0.2
     velocity = 0
@@ -74,13 +74,17 @@ class Testenemy(Enemy):
         else:
             self.velocity = 0
         self.position.y += self.velocity
+        
     def do_horizontal_movement(self, blocks: list[Block]):
         if is_colliding_left(blocks, self.position, self.size, self.rightMovement):
-            self.speed = self.rightMovement
-        elif is_colliding_right(blocks, self.position, self.size, self.leftMovement):
+            print("is_colliding_left")
             self.speed = self.leftMovement
-        elif not is_fully_colliding_top(blocks, self.position, self.size, self.leftMovement):
-            self.speed *= -1
+        elif is_colliding_right(blocks, self.position, self.size, self.leftMovement):
+            print("is_colliding_right")
+            self.speed = self.rightMovement
+        # if not is_fully_colliding_top(blocks, self.position, self.size, self.velocity):
+        #     print("not is_fully_colliding_top")
+        #     self.speed *= -1
         self.position.x += self.speed
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
@@ -125,7 +129,7 @@ def apply_vertical_movement(player: Player, blocks: list[Block]):
     height_offset = 5    
     is_on_bottom = player.location.y >= screenHeight-player.size.height and player.location.y <= screenHeight-player.size.height
         
-    if is_on_bottom or is_on_top(blocks, player):
+    if is_on_bottom or is_on_top(blocks, player.location, player.size):
         player.standing = True
     else:
         player.standing = False
@@ -140,31 +144,6 @@ def room_number(seed: str):
 # Returns the map relevant 
 def room_map(seed: str):
     return seed[4:]
-
-def create_blocks_from_seed(seed: str):
-    blockArray: list = []
-    newX = 50
-    newY = 50
-    for i in range(len(seed)-1):
-        if seed[i] == "1": 
-            i += 1
-            for j in range(int(seed[i])):
-                blockArray.append(Block(newX, newY))
-                if newX > screenWidth - 200:
-                    newX = 50
-                    newY += 100
-                else:
-                    newX += 100
-        elif seed[i] == "0":
-            i += 1
-            for j in range(int(seed[i])):
-                if newX > screenWidth - 200:
-                    newX = 50
-                    newY += 100
-                else: 
-                    newX += 100
-        i += 1
-    return blockArray
                
 def create_enemies_from_seed(seed: str):
     enemyArray: list = []
@@ -203,19 +182,20 @@ def draw_blocks(blocks: list[Block]):
     for i in range(len(blocks)):
         pygame.draw.rect(screen,(0,255,0),[blocks[i].x,blocks[i].y,blocks[i].size,blocks[i].size],0)
 
-def is_on_top(blocks: list[Block], player: Player):
+def is_on_top(blocks: list[Block], location: Point, size: Size):
     top_offset = 1
     for block in blocks:
-        left_bottom_player_part = Point(player.location.x, player.location.y + player.size.height + top_offset)
-        right_bottom_player_part = Point(player.location.x + player.size.width, player.location.y + player.size.height + top_offset)
+        left_bottom_player_part = Point(location.x, location.y + size.height + top_offset)
+        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + top_offset)
         if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
             return True
     return False
 
 def is_colliding_top(blocks: list[Block], location: Point, size: Size, velocity):
+    top_offset = 1
     for block in blocks:
-        left_bottom_player_part = Point(location.x, location.y + size.height + velocity)
-        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity)
+        left_bottom_player_part = Point(location.x, location.y + size.height + velocity + top_offset)
+        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity + top_offset)
         if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
             return True
     return False
@@ -264,12 +244,12 @@ def do_block_collisions(blockArray: list[Block], player: Player):
         player.velocity = 0
         
 def do_enemy_movement(enemyArray: list[Enemy],blockArray: list[Block]):
-    for i in range(len(enemyArray)):
-        enemyArray[i].do_vertical_movement(blockArray)
-        enemyArray[i].do_horizontal_movement(blockArray)
+    for enemy in enemyArray:
+        enemy.do_vertical_movement(blockArray)
+        enemy.do_horizontal_movement(blockArray)
         
 def draw_player(player: Player):
-    pygame.draw.rect(screen,(255,0,0),[player.location.x,player.location.y,player.size.width,player.size.height],0)
+    pygame.draw.rect(screen,(255,0,0),[player.location.x,player.location.y,player.size.width,player.size.height], 0)
         
 def draw_borders():
     pygame.draw.rect(screen,(0,0,0),[0,0,screenWidth,50],0)
@@ -282,23 +262,33 @@ def draw_health(player: Player):
         pygame.draw.rect(screen,(255,0,0),[44*i+50,5,40,40],0)
 
 def draw_enemies(enemies: list[Enemy]):
-    for i in range(len(enemies)):
-        pygame.draw.rect(screen,(0,255,255),[enemies[i].position.x,enemies[i].position.y,enemies[i].size.width,enemies[i].size.height],0)
+    for enemy in enemies:
+        pygame.draw.rect(screen,(0,255,255),[enemy.position.x,enemy.position.y,enemy.size.width,enemy.size.height], 0)
 
 # Game loop 
-
-
-
-blocks = create_blocks_from_seed(room_map(seed))
-enemies = create_enemies_from_seed(room_map(seed))
 player = Player()
 
-with open('level_01.json', 'r') as file:
-    data = json.load(file)
+def get_blocks():
+    with open('level_01.json', 'r') as file:
+        data = json.load(file)
 
-blocks.clear()
-for block_data in data["blocks"]:
-    blocks.append(Block(block_data["x"], block_data["y"]))
+    blocks: list[Block] = []
+    for block_data in data["blocks"]:
+        blocks.append(Block(block_data["x"], block_data["y"]))
+    return blocks
+
+def get_enemies():
+    with open('level_01.json', 'r') as file:
+        data = json.load(file)
+
+    enemies: list[Enemy] = []
+    for enemy_data in data["enemies"]:
+        enemies.append(Testenemy(Point(enemy_data["x"], enemy_data["y"])))
+    return enemies
+
+blocks = get_blocks()
+enemies = get_enemies()
+
 
 while running:
     for event in pygame.event.get():
@@ -312,10 +302,11 @@ while running:
     apply_horizontal_movement(player)
     
     do_enemy_movement(enemies, blocks)
-    draw_enemies(enemies)
+    
     
     screen.fill((30,200,50))
     draw_blocks(blocks)
+    draw_enemies(enemies)
     draw_player(player)
     draw_borders()
     draw_health(player)
