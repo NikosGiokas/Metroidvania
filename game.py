@@ -36,9 +36,12 @@ class Player:
     velocity = 0
     leftMovement = 0
     rightMovement = 0
-    standing = False
     jumping = False
     size = Size(80,80)
+    def is_jumping(self):
+        return self.velocity < 0
+    def can_jump(self):
+        return not self.is_jumping() and is_colliding_top(blocks, self.location, self.size, self.velocity)
 
 class Block:
     x = 0
@@ -69,7 +72,7 @@ class Testenemy(Enemy):
     health = 11
     size = Size(50,20)
     def do_vertical_movement(self, blocks: list[Block]):
-        if not is_colliding_top(blocks, self.position, self.size, self.velocity):
+        if not is_colliding_top(blocks, self.position, self.size, self.velocity+1):
             self.velocity += GRAVITY
         else:
             self.velocity = 0
@@ -118,22 +121,15 @@ def limit_out_of_bounds(player: Player):
 
 def apply_gravity(player: Player):
     jump_velocity = -3
-    if player.standing == False:
+    if not is_colliding_top(blocks,player.location,player.size,player.velocity):
         player.velocity += GRAVITY
-    elif player.standing == True:
-        player.velocity = 0
-    if player.jumping == True and player.standing == True:
-        player.velocity = jump_velocity
-
-def apply_vertical_movement(player: Player, blocks: list[Block]):
-    height_offset = 5    
-    is_on_bottom = player.location.y >= screenHeight-player.size.height and player.location.y <= screenHeight-player.size.height
-        
-    if is_on_bottom or is_on_top(blocks, player.location, player.size):
-        player.standing = True
     else:
-        player.standing = False
-    player.location.y += player.velocity
+        player.velocity = 0
+    if player.jumping == True:
+          if player.can_jump():
+            player.velocity = jump_velocity
+    
+
 
 def apply_horizontal_movement(player: Player):
     player.location.x -= player.leftMovement
@@ -182,20 +178,10 @@ def draw_blocks(blocks: list[Block]):
     for i in range(len(blocks)):
         pygame.draw.rect(screen,(0,255,0),[blocks[i].x,blocks[i].y,blocks[i].size,blocks[i].size],0)
 
-def is_on_top(blocks: list[Block], location: Point, size: Size):
-    top_offset = 1
-    for block in blocks:
-        left_bottom_player_part = Point(location.x, location.y + size.height + top_offset)
-        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + top_offset)
-        if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
-            return True
-    return False
-
 def is_colliding_top(blocks: list[Block], location: Point, size: Size, velocity):
-    top_offset = 1
     for block in blocks:
-        left_bottom_player_part = Point(location.x, location.y + size.height + velocity + top_offset)
-        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity + top_offset)
+        left_bottom_player_part = Point(location.x, location.y + size.height + velocity)
+        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity)
         if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
             return True
     return False
@@ -235,7 +221,6 @@ def is_colliding_right(blocks: list[Block], location: Point, size: Size, leftMov
 def do_block_collisions(blockArray: list[Block], player: Player):
     if is_colliding_top(blockArray, player.location, player.size, player.velocity):
         player.velocity = 0
-        player.standing = True
     if is_colliding_left(blockArray, player.location, player.size, player.rightMovement):
         player.location.x -= player.rightMovement
     if is_colliding_right(blockArray, player.location, player.size, player.leftMovement):
@@ -298,7 +283,8 @@ while running:
     apply_gravity(player)
     limit_out_of_bounds(player)
     do_block_collisions(blocks, player)
-    apply_vertical_movement(player, blocks)
+    #apply_vertical_movement(player, blocks)
+    player.location.y += player.velocity
     apply_horizontal_movement(player)
     
     do_enemy_movement(enemies, blocks)
