@@ -32,8 +32,11 @@ class Point:
 
 class Player:
     location = Point(450,250)
+    maxHealth = 5
     health = 5
     velocity = 0
+    maxJumpheight = 140
+    currentJumpHeight = 0
     leftMovement = 0
     rightMovement = 0
     jumping = False
@@ -80,10 +83,8 @@ class Testenemy(Enemy):
         
     def do_horizontal_movement(self, blocks: list[Block]):
         if is_colliding_left(blocks, self.position, self.size, self.rightMovement):
-            print("is_colliding_left")
             self.speed = self.leftMovement
         elif is_colliding_right(blocks, self.position, self.size, self.leftMovement):
-            print("is_colliding_right")
             self.speed = self.rightMovement
         # if not is_fully_colliding_top(blocks, self.position, self.size, self.velocity):
         #     print("not is_fully_colliding_top")
@@ -95,18 +96,18 @@ def check_collisions(point1: Point, width1: int, height1: int, point2: Point, wi
 
 def give_movement(player: Player, event: pygame.Event):
     if event.type == KEYDOWN:  
-        if event.key == K_a:  
+        if event.key == K_LEFT:  
             player.leftMovement = DV 
-        if event.key == K_d:  
+        if event.key == K_RIGHT:  
             player.rightMovement = DV  
-        if event.key == K_SPACE :
+        if event.key == K_z :
             player.jumping = True
     if event.type == KEYUP:
-        if event.key == K_a:
+        if event.key == K_LEFT:
             player.leftMovement = 0
-        if event.key == K_d:  
+        if event.key == K_RIGHT:  
             player.rightMovement = 0
-        if event.key == K_SPACE:
+        if event.key == K_z:
             player.jumping = False
 
 def limit_out_of_bounds(player: Player):
@@ -128,9 +129,11 @@ def apply_gravity(player: Player):
     if player.jumping == True:
           if player.can_jump():
             player.velocity = jump_velocity
+    if player.jumping == False and player.velocity < 0:
+        if player.velocity <= -0.5:
+            player.velocity = -0.5
     
-
-
+    
 def apply_horizontal_movement(player: Player):
     player.location.x -= player.leftMovement
     player.location.x += player.rightMovement
@@ -249,7 +252,6 @@ def draw_health(player: Player):
 def draw_enemies(enemies: list[Enemy]):
     for enemy in enemies:
         pygame.draw.rect(screen,(0,255,255),[enemy.position.x,enemy.position.y,enemy.size.width,enemy.size.height], 0)
-
 # Game loop 
 player = Player()
 
@@ -283,7 +285,7 @@ while running:
     apply_gravity(player)
     limit_out_of_bounds(player)
     do_block_collisions(blocks, player)
-    #apply_vertical_movement(player, blocks)
+
     player.location.y += player.velocity
     apply_horizontal_movement(player)
     
