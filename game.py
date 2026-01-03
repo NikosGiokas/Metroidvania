@@ -128,7 +128,8 @@ def apply_gravity(player: Player):
     if not is_colliding_top(blocks,player.location,player.size,player.velocity):
         player.velocity += GRAVITY
     else:
-        player.velocity = 0
+        if player.velocity > 10:
+            player.velocity = 2
     if player.jumping == True:
           if player.can_jump():
             player.velocity = jump_velocity
@@ -185,8 +186,8 @@ def draw_blocks(blocks: list[Block]):
 
 def is_colliding_top(blocks: list[Block], location: Point, size: Size, velocity):
     for block in blocks:
-        left_bottom_player_part = Point(location.x, location.y + size.height + velocity)
-        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity)
+        left_bottom_player_part = Point(location.x, location.y + size.height + velocity )
+        right_bottom_player_part = Point(location.x + size.width, location.y + size.height + velocity )
         if block.contains(left_bottom_player_part) or block.contains(right_bottom_player_part):
             return True
     return False
