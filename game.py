@@ -9,10 +9,12 @@ screenWidth = 1600
 screenHeight = 1000
 # Set up the game window
 screen = pygame.display.set_mode((screenWidth, screenHeight))
+clock=pygame.time.Clock()
 pygame.display.set_caption("Metroidvania")
 
-DV = 0.5
-GRAVITY = 9.81 / 450
+
+DV = 2
+GRAVITY = 9.81 / (450 / 15)
 running = True
 seed = "000019150902120902120902120712021102110411051109021204110612190316071100"
 
@@ -34,8 +36,9 @@ class Player:
     location = Point(450,250)
     maxHealth = 5
     health = 5
+    invincibilitySeconds = 1
     velocity = 0
-    maxJumpheight = 140
+    maxJumpheight = 140 * 6
     currentJumpHeight = 0
     leftMovement = 0
     rightMovement = 0
@@ -61,17 +64,17 @@ class Block:
 class Enemy:
     position = Point(0,0)
     health = 1
-    speed = 0.2
-    rightMovement = 0.2
-    leftMovement = -0.2
+    speed = 0.5
+    rightMovement = 0.1
+    leftMovement = -0.1
     velocity = 0
     size = Size(100,100)
     def __init__(self, position: Point):
         self.position = position
     
 class Testenemy(Enemy):
-    rightMovement = 0.2
-    leftMovement = -0.2
+    rightMovement = 1
+    leftMovement = -1
     health = 11
     size = Size(50,20)
     def do_vertical_movement(self, blocks: list[Block]):
@@ -121,7 +124,7 @@ def limit_out_of_bounds(player: Player):
         player.location.y = screenHeight-player.size.height
 
 def apply_gravity(player: Player):
-    jump_velocity = -3
+    jump_velocity = -11.6
     if not is_colliding_top(blocks,player.location,player.size,player.velocity):
         player.velocity += GRAVITY
     else:
@@ -130,9 +133,8 @@ def apply_gravity(player: Player):
           if player.can_jump():
             player.velocity = jump_velocity
     if player.jumping == False and player.velocity < 0:
-        if player.velocity <= -0.5:
-            player.velocity = -0.5
-    
+        if player.velocity <= -4:
+            player.velocity = -4
     
 def apply_horizontal_movement(player: Player):
     player.location.x -= player.leftMovement
@@ -299,6 +301,7 @@ while running:
     draw_borders()
     draw_health(player)
     pygame.display.update()
+    clock.tick(120)
 
 # Quit Pygame
 pygame.quit()
