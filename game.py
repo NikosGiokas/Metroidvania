@@ -47,7 +47,16 @@ class Player:
     def is_jumping(self):
         return self.velocity < 0
     def can_jump(self):
-        return not self.is_jumping() and is_colliding_top(blocks, self.location, self.size, self.velocity)
+        distance_offset = 1
+        return not self.is_jumping() and is_colliding_top(blocks, self.location, self.size, self.velocity + distance_offset)
+    def jump(self):
+        jump_velocity = -11.7
+        if self.can_jump():
+            self.velocity = jump_velocity
+    def stop_jump(self):
+        if self.velocity < 0:
+            if self.velocity <= -4:
+                self.velocity = -4
 
 class Block:
     x = 0
@@ -89,29 +98,26 @@ class Testenemy(Enemy):
             self.speed = self.leftMovement
         elif is_colliding_right(blocks, self.position, self.size, self.leftMovement):
             self.speed = self.rightMovement
-        # if not is_fully_colliding_top(blocks, self.position, self.size, self.velocity):
-        #     print("not is_fully_colliding_top")
-        #     self.speed *= -1
         self.position.x += self.speed
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
     return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
 
-def give_movement(player: Player, event: pygame.Event):
+def give_movement(player: Player, event: pygame.event):
     if event.type == KEYDOWN:  
         if event.key == K_LEFT:  
             player.leftMovement = DV 
         if event.key == K_RIGHT:  
             player.rightMovement = DV  
-        if event.key == K_z :
-            player.jumping = True
+        if event.key == K_z:
+            player.jump()
     if event.type == KEYUP:
         if event.key == K_LEFT:
             player.leftMovement = 0
         if event.key == K_RIGHT:  
             player.rightMovement = 0
         if event.key == K_z:
-            player.jumping = False
+            player.stop_jump()
 
 def limit_out_of_bounds(player: Player):
     if player.location.x < 0: 
@@ -124,19 +130,12 @@ def limit_out_of_bounds(player: Player):
         player.location.y = screenHeight-player.size.height
 
 def apply_gravity(player: Player):
-    jump_velocity = -11.6
     if not is_colliding_top(blocks,player.location,player.size,player.velocity):
         player.velocity += GRAVITY
     else:
         if player.velocity > 10:
             player.velocity = 2
-    if player.jumping == True:
-          if player.can_jump():
-            player.velocity = jump_velocity
-    if player.jumping == False and player.velocity < 0:
-        if player.velocity <= -4:
-            player.velocity = -4
-    
+
 def apply_horizontal_movement(player: Player):
     player.location.x -= player.leftMovement
     player.location.x += player.rightMovement
@@ -146,39 +145,6 @@ def room_number(seed: str):
 # Returns the map relevant 
 def room_map(seed: str):
     return seed[4:]
-               
-def create_enemies_from_seed(seed: str):
-    enemyArray: list = []
-    newX = 50
-    newY = 50
-    for i in range(len(seed)-1):
-        if seed[i] == "2": 
-            i += 1
-            for j in range(int(seed[i])):
-                enemyArray.append(Testenemy(Point(newX, newY)))
-                if newX > screenWidth - 200:
-                    newX = 50
-                    newY += 100
-                else:
-                    newX += 100
-        elif seed[i] == "0":
-            i += 1
-            for j in range(int(seed[i])):
-                if newX > screenWidth - 200:
-                    newX = 50
-                    newY += 100
-                else: 
-                    newX += 100
-        elif seed[i] == "1":
-            i += 1
-            for j in range(int(seed[i])):
-                if newX > screenWidth - 200:
-                    newX = 50
-                    newY += 100
-                else: 
-                    newX += 100
-        i += 1
-    return enemyArray
                
 def draw_blocks(blocks: list[Block]):
     for i in range(len(blocks)):
