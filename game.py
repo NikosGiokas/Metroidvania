@@ -36,7 +36,8 @@ class Player:
     location = Point(450,250)
     maxHealth = 5
     health = 5
-    invincibilitySeconds = 1
+    maxInvincibility = 120
+    invincibilityframes = 0
     velocity = 0
     maxJumpheight = 140 * 6
     currentJumpHeight = 0
@@ -99,6 +100,16 @@ class Testenemy(Enemy):
         elif is_colliding_right(blocks, self.position, self.size, self.leftMovement):
             self.speed = self.rightMovement
         self.position.x += self.speed
+    
+    def do_collision_damage(self,player:Player):
+        if check_collisions(self.position, self.size.width, self.size.height, player.location, player.size.width, player.size.height):
+
+            if player.invincibilityframes == 0:
+                player.health -= 1
+                player.invincibilityframes = 120
+        if player.invincibilityframes != 0:
+            player.invincibilityframes -= 1
+
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
     return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
@@ -200,10 +211,11 @@ def do_block_collisions(blockArray: list[Block], player: Player):
     if is_colliding_bottom(blockArray, player):
         player.velocity = 0
         
-def do_enemy_movement(enemyArray: list[Enemy],blockArray: list[Block]):
+def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
     for enemy in enemyArray:
         enemy.do_vertical_movement(blockArray)
         enemy.do_horizontal_movement(blockArray)
+        enemy.do_collision_damage(player)
         
 def draw_player(player: Player):
     pygame.draw.rect(screen,(255,0,0),[player.location.x,player.location.y,player.size.width,player.size.height], 0)
@@ -258,7 +270,7 @@ while running:
     player.location.y += player.velocity
     apply_horizontal_movement(player)
     
-    do_enemy_movement(enemies, blocks)
+    do_enemy_actions(enemies, blocks)
     
     
     screen.fill((30,200,50))
