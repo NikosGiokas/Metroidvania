@@ -39,6 +39,7 @@ class Player:
     maxInvincibility = 120
     invincibilityframes = 0
     velocity = 0
+    colour = (255,0,0)
     maxJumpheight = 140 * 6
     currentJumpHeight = 0
     leftMovement = 0
@@ -105,10 +106,13 @@ class Testenemy(Enemy):
         if check_collisions(self.position, self.size.width, self.size.height, player.location, player.size.width, player.size.height):
 
             if player.invincibilityframes == 0:
+                player.colour = (255,155,0)
                 player.health -= 1
                 player.invincibilityframes = 120
         if player.invincibilityframes != 0:
             player.invincibilityframes -= 1
+        else:
+            player.colour = (255,0,0)
 
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
@@ -218,7 +222,7 @@ def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
         enemy.do_collision_damage(player)
         
 def draw_player(player: Player):
-    pygame.draw.rect(screen,(255,0,0),[player.location.x,player.location.y,player.size.width,player.size.height], 0)
+    pygame.draw.rect(screen,player.colour,[player.location.x,player.location.y,player.size.width,player.size.height], 0)
         
 def draw_borders():
     pygame.draw.rect(screen,(0,0,0),[0,0,screenWidth,50],0)
