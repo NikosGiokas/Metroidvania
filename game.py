@@ -38,6 +38,7 @@ class Player:
     health = 5
     maxInvincibility = 120
     invincibilityframes = 0
+    attackFrames = 60
     velocity = 0
     colour = (255,0,0)
     maxJumpheight = 140 * 6
@@ -59,6 +60,11 @@ class Player:
         if self.velocity < 0:
             if self.velocity <= -4:
                 self.velocity = -4
+    def attackUp(self,enemyArray: list, attacking: bool):
+        if self.attackFrames == 60 and attacking == True:
+            self.attackFrames = 0
+        if self.attackFrames <= 20:
+            
 
 class Block:
     x = 0
@@ -113,6 +119,12 @@ class Testenemy(Enemy):
             player.invincibilityframes -= 1
         else:
             player.colour = (255,0,0)
+    
+    def do_actions(self, blocks: list[Block], player: Player):
+        self.do_vertical_movement(blocks)
+        self.do_horizontal_movement(blocks)
+        self.do_collision_damage(player)
+
 
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
@@ -217,9 +229,7 @@ def do_block_collisions(blockArray: list[Block], player: Player):
         
 def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
     for enemy in enemyArray:
-        enemy.do_vertical_movement(blockArray)
-        enemy.do_horizontal_movement(blockArray)
-        enemy.do_collision_damage(player)
+        enemy.do_actions(blockArray,player)
         
 def draw_player(player: Player):
     pygame.draw.rect(screen,player.colour,[player.location.x,player.location.y,player.size.width,player.size.height], 0)
