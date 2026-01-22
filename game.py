@@ -36,9 +36,14 @@ class Player:
     location = Point(450,250)
     maxHealth = 5
     health = 5
+    damage = 1
     maxInvincibility = 120
     invincibilityframes = 0
     attackFrames = 60
+    attackingUp = False
+    attackingLeft = False
+    attackingDown = False
+    attackingRight = False
     velocity = 0
     colour = (255,0,0)
     maxJumpheight = 140 * 6
@@ -60,11 +65,61 @@ class Player:
         if self.velocity < 0:
             if self.velocity <= -4:
                 self.velocity = -4
-    def attackUp(self,enemyArray: list, attacking: bool):
-        if self.attackFrames == 60 and attacking == True:
+    def attackUp(self,enemyArray: list, attacked: bool):
+        if self.attackFrames == 60 and attacked == True:
             self.attackFrames = 0
-        if self.attackFrames <= 20:
-            
+            self.attackingUp = True
+        if self.attackFrames <= 20 and self.attackingUp:
+            for enemy in enemyArray:
+                if check_collisions(self.location-self.size.width/2,self.size.width*2,self.size.height*3,enemy.position,enemy.size.width,enemy.size.height) and self.attackingUp:
+                    enemy.health -= self.damage
+                    self.attackingUp = False
+        if self.attackFrames < 60:
+            self.attackFrames += 1
+        if self.attackFrames > 20:
+            self.attackingUp == False
+
+    def attackLeft(self,enemyArray: list, attacked: bool):
+        if self.attackFrames == 60 and attacked == True:
+            self.attackFrames = 0
+            self.attackingLeft = True
+        if self.attackFrames <= 20 and self.attackingLeft:
+            for enemy in enemyArray:
+                if check_collisions(self.location,self.size.width*3,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingLeft:
+                    enemy.health -= self.damage
+                    self.attackingLeft = False
+        if self.attackFrames < 60:
+            self.attackFrames += 1
+        if self.attackFrames > 20:
+            self.attackingLeft == False
+    
+    def attackDown(self,enemyArray: list, attacked: bool):
+        if self.attackFrames == 60 and attacked == True and self.velocity != 0:
+            self.attackFrames = 0
+            self.attackingDown = True
+        if self.attackFrames <= 20  and self.attackingDown:
+            for enemy in enemyArray:
+                if check_collisions(self.location-self.size.width/2,self.size.width*2,-self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingDown:
+                    enemy.health -= self.damage
+                    self.attacking = False
+        if self.attackFrames < 60:
+            self.attackFrames += 1
+        if self.attackFrames > 20:
+            self.attackingDown == False
+    
+    def attackRight(self,enemyArray: list, attacked: bool):
+        if self.attackFrames == 60 and attacked == True:
+            self.attackFrames = 0
+            self.attackingRight = True
+        if self.attackFrames <= 20 and self.attackingRight:
+            for enemy in enemyArray:
+                if check_collisions(self.location+self.size.width/2,self.size.width*2,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingRight:
+                    enemy.health -= self.damage
+                    self.attackingRight = False
+        if self.attackFrames < 60:
+            self.attackFrames += 1
+        if self.attackFrames > 20:
+            self.attackingRight == False
 
 class Block:
     x = 0
@@ -138,6 +193,14 @@ def give_movement(player: Player, event: pygame.event):
             player.rightMovement = DV  
         if event.key == K_z:
             player.jump()
+        if event.key == K_UP and event.key == K_x:
+            player.attackUp(enemies, True)
+        if event.key == K_LEFT and event.key == K_x:
+            player.attackLeft(enemies, True)
+        if event.key == K_DOWN and event.key == K_x:
+            player.attackDown(enemies, True)
+        if event.key == K_RIGHT and event.key == K_x:
+            player.attackRight(enemies, True)
     if event.type == KEYUP:
         if event.key == K_LEFT:
             player.leftMovement = 0
