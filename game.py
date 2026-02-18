@@ -40,10 +40,8 @@ class Player:
     maxInvincibility = 120
     invincibilityframes = 0
     attackFrames = 60
-    attackingUp = False
-    attackingLeft = False
-    attackingDown = False
-    attackingRight = False
+    attacking = False
+    direction = 0 # 0 = left, 1 = up, 2 = right, 3 = down
     velocity = 0
     colour = (255,0,0)
     maxJumpheight = 140 * 6
@@ -65,61 +63,43 @@ class Player:
         if self.velocity < 0:
             if self.velocity <= -4:
                 self.velocity = -4
-    def attackUp(self,enemyArray: list, attacked: bool):
-        if self.attackFrames == 60 and attacked == True:
-            self.attackFrames = 0
-            self.attackingUp = True
-        if self.attackFrames <= 20 and self.attackingUp:
+    def attackUp(self,enemyArray: list):
+        if self.attackFrames <= 40:
             for enemy in enemyArray:
-                if check_collisions(self.location-self.size.width/2,self.size.width*2,self.size.height*3,enemy.position,enemy.size.width,enemy.size.height) and self.attackingUp:
-                    enemy.health -= self.damage
-                    self.attackingUp = False
-        if self.attackFrames < 60:
-            self.attackFrames += 1
-        if self.attackFrames > 20:
-            self.attackingUp == False
-
-    def attackLeft(self,enemyArray: list, attacked: bool):
-        if self.attackFrames == 60 and attacked == True:
-            self.attackFrames = 0
-            self.attackingLeft = True
-        if self.attackFrames <= 20 and self.attackingLeft:
-            for enemy in enemyArray:
-                if check_collisions(self.location,self.size.width*3,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingLeft:
-                    enemy.health -= self.damage
-                    self.attackingLeft = False
-        if self.attackFrames < 60:
-            self.attackFrames += 1
-        if self.attackFrames > 20:
-            self.attackingLeft == False
-    
-    def attackDown(self,enemyArray: list, attacked: bool):
-        if self.attackFrames == 60 and attacked == True and self.velocity != 0:
-            self.attackFrames = 0
-            self.attackingDown = True
-        if self.attackFrames <= 20  and self.attackingDown:
-            for enemy in enemyArray:
-                if check_collisions(self.location-self.size.width/2,self.size.width*2,-self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingDown:
+                if check_collisions(Point(self.location.x-self.size.width/4,self.location.y-self.size.height*2),self.size.width*1.5,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
-        if self.attackFrames < 60:
-            self.attackFrames += 1
-        if self.attackFrames > 20:
-            self.attackingDown == False
-    
-    def attackRight(self,enemyArray: list, attacked: bool):
-        if self.attackFrames == 60 and attacked == True:
-            self.attackFrames = 0
-            self.attackingRight = True
-        if self.attackFrames <= 20 and self.attackingRight:
+    def attackLeft(self,enemyArray: list):
+        if self.attackFrames <= 40:
             for enemy in enemyArray:
-                if check_collisions(self.location+self.size.width/2,self.size.width*2,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attackingRight:
+                if check_collisions(Point(self.location.x-self.size.width*2,self.location.y-self.size.height/4),self.size.width*2,self.size.height*1.5,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
-                    self.attackingRight = False
+                    self.attacking = False
+    def attackDown(self,enemyArray: list):
+        if self.attackFrames <= 40:
+            for enemy in enemyArray:
+                if check_collisions(Point(self.location.x-self.size.width/4,self.location.y+self.size.height),self.size.width*1.5,-self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
+                    enemy.health -= self.damage
+                    self.attacking = False
+                    self.velocity = -11.7
+    def attackRight(self,enemyArray: list):
+        if self.attackFrames <= 40:
+            for enemy in enemyArray:
+                if check_collisions(Point(self.location.x+self.size.width,self.location.y-self.size.height/4),self.size.width*2,self.size.height*1.5,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
+                    enemy.health -= self.damage
+                    self.attacking = False
+    def countdownAttackframes(self):
         if self.attackFrames < 60:
             self.attackFrames += 1
-        if self.attackFrames > 20:
-            self.attackingRight == False
+    def directionalAttack(self,enemyArray: list):
+        if self.direction == 0:
+            self.attackLeft(enemyArray)
+        elif self.direction == 1:
+            self.attackUp(enemyArray)
+        elif self.direction == 2:
+            self.attackRight(enemyArray)
+        elif self.direction == 3:
+            self.attackDown(enemyArray)
 
 class Block:
     x = 0
@@ -185,22 +165,23 @@ class Testenemy(Enemy):
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
     return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
 
-def give_movement(player: Player, event: pygame.event):
+def give_movement(player: Player, event: pygame.event, enemyArray: list):
     if event.type == KEYDOWN:  
         if event.key == K_LEFT:  
             player.leftMovement = DV 
+            player.direction = 0
         if event.key == K_RIGHT:  
-            player.rightMovement = DV  
+            player.rightMovement = DV 
+            player.direction = 2 
         if event.key == K_z:
             player.jump()
-        if event.key == K_UP and event.key == K_x:
-            player.attackUp(enemies, True)
-        if event.key == K_LEFT and event.key == K_x:
-            player.attackLeft(enemies, True)
-        if event.key == K_DOWN and event.key == K_x:
-            player.attackDown(enemies, True)
-        if event.key == K_RIGHT and event.key == K_x:
-            player.attackRight(enemies, True)
+        if event.key == K_UP:
+            player.direction = 1
+        if event.key == K_DOWN:
+            player.direction = 3
+        if event.key == K_x and player.attackFrames == 60:
+            player.attackFrames = 0
+            player.directionalAttack(enemyArray)
     if event.type == KEYUP:
         if event.key == K_LEFT:
             player.leftMovement = 0
@@ -208,6 +189,7 @@ def give_movement(player: Player, event: pygame.event):
             player.rightMovement = 0
         if event.key == K_z:
             player.stop_jump()
+    
 
 def limit_out_of_bounds(player: Player):
     if player.location.x < 0: 
@@ -293,7 +275,18 @@ def do_block_collisions(blockArray: list[Block], player: Player):
 def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
     for enemy in enemyArray:
         enemy.do_actions(blockArray,player)
-        
+
+def draw_attacks(player: Player):
+    if player.attackFrames <= 40:
+        if player.direction == 0:
+            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width*2,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
+        elif player.direction == 1:
+            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width/4,player.location.y-player.size.height*2,player.size.width*1.5,player.size.height*2])
+        elif player.direction == 2:
+            pygame.draw.rect(screen,(0,255,255),[player.location.x+player.size.width,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
+        elif player.direction == 3:
+            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width/4,player.location.y+player.size.height,player.size.width*1.5,player.size.height*2])
+
 def draw_player(player: Player):
     pygame.draw.rect(screen,player.colour,[player.location.x,player.location.y,player.size.width,player.size.height], 0)
         
@@ -339,13 +332,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        give_movement(player, event)
+        give_movement(player, event, enemies)
     apply_gravity(player)
     limit_out_of_bounds(player)
     do_block_collisions(blocks, player)
 
     player.location.y += player.velocity
     apply_horizontal_movement(player)
+    player.countdownAttackframes()
     
     do_enemy_actions(enemies, blocks)
     
@@ -354,6 +348,7 @@ while running:
     draw_blocks(blocks)
     draw_enemies(enemies)
     draw_player(player)
+    draw_attacks(player)
     draw_borders()
     draw_health(player)
     pygame.display.update()
