@@ -190,6 +190,10 @@ def give_movement(player: Player, event: pygame.event, enemyArray: list):
         if event.key == K_z:
             player.stop_jump()
     
+def do_enemy_deaths(enemyArray: list):
+    for enemy in enemyArray:
+        if enemy.health <= 0:
+            enemyArray.remove(enemy)
 
 def limit_out_of_bounds(player: Player):
     if player.location.x < 0: 
@@ -279,13 +283,13 @@ def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
 def draw_attacks(player: Player):
     if player.attackFrames <= 40:
         if player.direction == 0:
-            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width*2,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
+            pygame.draw.rect(screen,(100,0,255),[player.location.x-player.size.width*2,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
         elif player.direction == 1:
-            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width/4,player.location.y-player.size.height*2,player.size.width*1.5,player.size.height*2])
+            pygame.draw.rect(screen,(100,0,255),[player.location.x-player.size.width/4,player.location.y-player.size.height*2,player.size.width*1.5,player.size.height*2])
         elif player.direction == 2:
-            pygame.draw.rect(screen,(0,255,255),[player.location.x+player.size.width,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
+            pygame.draw.rect(screen,(100,0,255),[player.location.x+player.size.width,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
         elif player.direction == 3:
-            pygame.draw.rect(screen,(0,255,255),[player.location.x-player.size.width/4,player.location.y+player.size.height,player.size.width*1.5,player.size.height*2])
+            pygame.draw.rect(screen,(100,0,255),[player.location.x-player.size.width/4,player.location.y+player.size.height,player.size.width*1.5,player.size.height*2])
 
 def draw_player(player: Player):
     pygame.draw.rect(screen,player.colour,[player.location.x,player.location.y,player.size.width,player.size.height], 0)
@@ -342,7 +346,7 @@ while running:
     player.countdownAttackframes()
     
     do_enemy_actions(enemies, blocks)
-    
+    do_enemy_deaths(enemies)
     
     screen.fill((30,200,50))
     draw_blocks(blocks)
