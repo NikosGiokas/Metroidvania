@@ -36,7 +36,7 @@ class Player:
     location = Point(450,250)
     maxHealth = 5
     health = 5
-    damage = 1
+    damage = 5
     maxInvincibility = 120
     invincibilityframes = 0
     attackFrames = 60
@@ -78,7 +78,7 @@ class Player:
     def attackDown(self,enemyArray: list):
         if self.attackFrames <= 40:
             for enemy in enemyArray:
-                if check_collisions(Point(self.location.x-self.size.width/4,self.location.y+self.size.height),self.size.width*1.5,-self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
+                if check_collisions(Point(self.location.x-self.size.width/4,self.location.y+self.size.height),self.size.width*1.5,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
                     self.velocity = -11.7
@@ -100,6 +100,10 @@ class Player:
             self.attackRight(enemyArray)
         elif self.direction == 3:
             self.attackDown(enemyArray)
+    def invincibility_frame_color(self):
+        if self.invincibilityframes == 0:
+            self.colour = (255,0,0)
+
 
 class Block:
     x = 0
@@ -180,6 +184,7 @@ def give_movement(player: Player, event: pygame.event, enemyArray: list):
         if event.key == K_DOWN:
             player.direction = 3
         if event.key == K_x and player.attackFrames == 60:
+            player.attacking  = True
             player.attackFrames = 0
             player.directionalAttack(enemyArray)
     if event.type == KEYUP:
@@ -352,6 +357,7 @@ while running:
     draw_blocks(blocks)
     draw_enemies(enemies)
     draw_player(player)
+    player.invincibility_frame_color()
     draw_attacks(player)
     draw_borders()
     draw_health(player)
