@@ -39,9 +39,13 @@ class Player:
     damage = 5
     maxInvincibility = 120
     invincibilityframes = 0
-    attackFrames = 60
+    attackFrames = 40
+    maxAttackFrames = 40
+    attackAnimationFrames = 20
     attacking = False
     direction = 0 # 0 = left, 1 = up, 2 = right, 3 = down
+    directionDownPriority = False
+    directionUpPriority = False
     velocity = 0
     colour = (255,0,0)
     maxJumpheight = 140 * 6
@@ -64,32 +68,32 @@ class Player:
             if self.velocity <= -4:
                 self.velocity = -4
     def attackUp(self,enemyArray: list):
-        if self.attackFrames <= 40:
+        if self.attackFrames <= self.attackAnimationFrames:
             for enemy in enemyArray:
                 if check_collisions(Point(self.location.x-self.size.width/4,self.location.y-self.size.height*2),self.size.width*1.5,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
     def attackLeft(self,enemyArray: list):
-        if self.attackFrames <= 40:
+        if self.attackFrames <= self.attackAnimationFrames:
             for enemy in enemyArray:
                 if check_collisions(Point(self.location.x-self.size.width*2,self.location.y-self.size.height/4),self.size.width*2,self.size.height*1.5,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
     def attackDown(self,enemyArray: list):
-        if self.attackFrames <= 40:
+        if self.attackFrames <= self.attackAnimationFrames:
             for enemy in enemyArray:
                 if check_collisions(Point(self.location.x-self.size.width/4,self.location.y+self.size.height),self.size.width*1.5,self.size.height*2,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
                     self.velocity = -11.7
     def attackRight(self,enemyArray: list):
-        if self.attackFrames <= 40:
+        if self.attackFrames <= self.attackAnimationFrames:
             for enemy in enemyArray:
                 if check_collisions(Point(self.location.x+self.size.width,self.location.y-self.size.height/4),self.size.width*2,self.size.height*1.5,enemy.position,enemy.size.width,enemy.size.height) and self.attacking:
                     enemy.health -= self.damage
                     self.attacking = False
     def countdownAttackframes(self):
-        if self.attackFrames < 60:
+        if self.attackFrames < self.maxAttackFrames:
             self.attackFrames += 1
     def directionalAttack(self,enemyArray: list):
         if self.direction == 0:
@@ -100,6 +104,11 @@ class Player:
             self.attackRight(enemyArray)
         elif self.direction == 3:
             self.attackDown(enemyArray)
+    def do_direction_priority(self):
+        if(self.directionDownPriority):
+            self.direction = 3
+        elif(self.directionUpPriority):
+            self.direction = 1
     def invincibility_frame_color(self):
         if self.invincibilityframes == 0:
             self.colour = (255,0,0)
@@ -180,10 +189,10 @@ def give_movement(player: Player, event: pygame.event, enemyArray: list):
         if event.key == K_z:
             player.jump()
         if event.key == K_UP:
-            player.direction = 1
+            player.directionUpPriority = True
         if event.key == K_DOWN:
-            player.direction = 3
-        if event.key == K_x and player.attackFrames == 60:
+            player.directionDownPriority = True
+        if event.key == K_x and player.attackFrames == player.maxAttackFrames:
             player.attacking  = True
             player.attackFrames = 0
             player.directionalAttack(enemyArray)
@@ -194,6 +203,11 @@ def give_movement(player: Player, event: pygame.event, enemyArray: list):
             player.rightMovement = 0
         if event.key == K_z:
             player.stop_jump()
+        if event.key == K_UP:
+            player.directionUpPriority = False
+        if event.key == K_DOWN:
+            player.directionDownPriority = False
+    player.do_direction_priority()
     
 def do_enemy_deaths(enemyArray: list):
     for enemy in enemyArray:
@@ -286,7 +300,7 @@ def do_enemy_actions(enemyArray: list[Enemy],blockArray: list[Block]):
         enemy.do_actions(blockArray,player)
 
 def draw_attacks(player: Player):
-    if player.attackFrames <= 40:
+    if player.attackFrames <= player.attackAnimationFrames:
         if player.direction == 0:
             pygame.draw.rect(screen,(100,0,255),[player.location.x-player.size.width*2,player.location.y-player.size.height/4,player.size.width*2,player.size.height*1.5])
         elif player.direction == 1:
