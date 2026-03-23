@@ -113,7 +113,6 @@ class Player:
         if self.invincibilityframes == 0:
             self.colour = (255,0,0)
 
-
 class Block:
     x = 0
     y = 0
@@ -173,7 +172,16 @@ class Testenemy(Enemy):
         self.do_horizontal_movement(blocks)
         self.do_collision_damage(player)
 
-
+class Transition:
+    position = Point(0,0)
+    height = 0
+    address = ""
+    outputPos = Point(0,0)
+    def __init__(self, position: Point, height: int, address: str, outputPos: Point):
+        self.position = position
+        self.height = height
+        self.address = address
+        self.outputPos = outputPos
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
     return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
@@ -329,8 +337,11 @@ def draw_enemies(enemies: list[Enemy]):
 # Game loop 
 player = Player()
 
+#def do_transition():
+#    for transition in 
+
 def get_blocks():
-    with open('level_01.json', 'r') as file:
+    with open("level_01.json", 'r') as file:
         data = json.load(file)
 
     blocks: list[Block] = []
@@ -347,9 +358,18 @@ def get_enemies():
         enemies.append(Testenemy(Point(enemy_data["x"], enemy_data["y"])))
     return enemies
 
+def get_transitions():
+    with open('level_01.json', 'r') as file:
+        data = json.load(file)
+
+    transitions: list[Transition] = []
+    for transition_data in data["transitions"]:
+        transitions.append(Transition(transition_data["address"],Point(transition_data["x"], transition_data["y"]),transition_data["height"],Point(transition_data["outputX"],transition_data["outputY"])))
+    return transitions
+
 blocks = get_blocks()
 enemies = get_enemies()
-
+transitions = get_transitions()
 
 while running:
     for event in pygame.event.get():
