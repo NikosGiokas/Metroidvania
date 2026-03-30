@@ -14,9 +14,9 @@ pygame.display.set_caption("Metroidvania")
 
 
 DV = 2
-GRAVITY = 9.81 / (450 / 15)
+GRAVITY = 9.81 / 20#30#(450 / 15)
 running = True
-seed = "000019150902120902120902120712021102110411051109021204110612190316071100"
+currentMap = "level_01.json"
 
 class Size:
     width = 0
@@ -242,12 +242,6 @@ def apply_gravity(player: Player):
 def apply_horizontal_movement(player: Player):
     player.location.x -= player.leftMovement
     player.location.x += player.rightMovement
-# Returns the room number
-def room_number(seed: str):
-    return seed[:3]
-# Returns the map relevant 
-def room_map(seed: str):
-    return seed[4:]
                
 def draw_blocks(blocks: list[Block]):
     for i in range(len(blocks)):
@@ -337,11 +331,8 @@ def draw_enemies(enemies: list[Enemy]):
 # Game loop 
 player = Player()
 
-#def do_transition():
-#    for transition in 
-
 def get_blocks():
-    with open("level_01.json", 'r') as file:
+    with open(currentMap, 'r') as file:
         data = json.load(file)
 
     blocks: list[Block] = []
@@ -350,7 +341,7 @@ def get_blocks():
     return blocks
 
 def get_enemies():
-    with open('level_01.json', 'r') as file:
+    with open(currentMap, 'r') as file:
         data = json.load(file)
 
     enemies: list[Enemy] = []
@@ -359,17 +350,37 @@ def get_enemies():
     return enemies
 
 def get_transitions():
-    with open('level_01.json', 'r') as file:
+    with open(currentMap, 'r') as file:
         data = json.load(file)
 
     transitions: list[Transition] = []
     for transition_data in data["transitions"]:
-        transitions.append(Transition(transition_data["address"],Point(transition_data["x"], transition_data["y"]),transition_data["height"],Point(transition_data["outputX"],transition_data["outputY"])))
+        transitions.append(
+            Transition(Point(transition_data["x"], transition_data["y"]), transition_data["height"],transition_data["address"],  Point(transition_data["outputX"],transition_data["outputY"])))
     return transitions
 
 blocks = get_blocks()
 enemies = get_enemies()
 transitions = get_transitions()
+
+
+def do_transitions(player: Player):
+    global currentMap, blocks, enemies, transitions
+    for transition in transitions:
+        if check_collisions(player.location,player.size.width,player.size.height,transition.position,50,transition.height):
+            player.location = Point(transition.outputPos.x,transition.outputPos.y)
+            currentMap = transition.address
+            blocks.clear()
+            enemies.clear()
+            transitions.clear()
+            blocks = get_blocks()
+            enemies = get_enemies()
+            transitions = get_transitions()
+            print(transition.address)
+            print(currentMap)
+
+
+
 
 while running:
     for event in pygame.event.get():
@@ -383,6 +394,8 @@ while running:
     player.location.y += player.velocity
     apply_horizontal_movement(player)
     player.countdownAttackframes()
+
+    do_transitions(player)
     
     do_enemy_actions(enemies, blocks)
     do_enemy_deaths(enemies)
