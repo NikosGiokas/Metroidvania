@@ -53,7 +53,7 @@
         {"type": "Testenemy", "x": 470, "y": 600}
     ],
     "transitions": [
-        {"address": "level_02.json", "x": 1550, "y": 600, "height": 300, "outputX": 50, "outputY": 250}
+        {"address": "level_02.json", "x": 1550, "y": 600, "height": 300, "outputX": 50, "outputY": 369}
 
     ]
 }

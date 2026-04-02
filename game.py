@@ -14,9 +14,9 @@ pygame.display.set_caption("Metroidvania")
 
 
 DV = 2
-GRAVITY = 9.81 / 20#30#(450 / 15)
+GRAVITY = 9.81 / 30 #(450 / 15)
 running = True
-currentMap = "level_01.json"
+currentMap = "level_03.json"
 
 class Size:
     width = 0
