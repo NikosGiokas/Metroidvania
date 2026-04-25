@@ -16,7 +16,7 @@ pygame.display.set_caption("Metroidvania")
 DV = 2
 GRAVITY = 9.81 / 30 #(450 / 15)
 running = True
-currentMap = "level_03.json"
+currentMap = "level_01.json"
 
 class Size:
     width = 0
@@ -31,7 +31,7 @@ class Point:
     def __init__(self, x, y):
         self.x = round(x)
         self.y = round(y)
-
+    
 class Player:
     location = Point(450,250)
     maxHealth = 5
@@ -167,6 +167,9 @@ class Testenemy(Enemy):
         else:
             player.colour = (255,0,0)
     
+    def draw(self):
+        pygame.draw.rect(screen,(0,255,255),[self.position.x,self.position.y,self.size.width,self.size.height], 0)
+
     def do_actions(self, blocks: list[Block], player: Player):
         self.do_vertical_movement(blocks)
         self.do_horizontal_movement(blocks)
@@ -182,6 +185,10 @@ class Transition:
         self.height = height
         self.address = address
         self.outputPos = outputPos
+
+#class Boss(Enemy):
+
+
 
 def check_collisions(point1: Point, width1: int, height1: int, point2: Point, width2: int, height2: int):
     return point1.x + width1 >= point2.x and point1.x <= point2.x + width2 and point1.y + height1 >= point2.y and point1.y <= point2.y + height2
@@ -327,7 +334,7 @@ def draw_health(player: Player):
 
 def draw_enemies(enemies: list[Enemy]):
     for enemy in enemies:
-        pygame.draw.rect(screen,(0,255,255),[enemy.position.x,enemy.position.y,enemy.size.width,enemy.size.height], 0)
+        enemy.draw()
 # Game loop 
 player = Player()
 
